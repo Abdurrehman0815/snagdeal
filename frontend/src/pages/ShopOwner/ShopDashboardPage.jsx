@@ -1,12 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { Box, Heading, Text, Button, Flex, Spinner, Alert, AlertIcon, SimpleGrid, Image, Stack, HStack } from '@chakra-ui/react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useHistory } from 'react-router-dom'; // CHANGED: useNavigate to useHistory
 import { useAuthStore } from '../../store/authStore';
-import { getProductsByShop, deleteProduct } from '../../api/products'; // Import API functions
+import { getProductsByShop, deleteProduct } from '../../api/products';
 
 function ShopDashboardPage() {
   const { user } = useAuthStore();
-  const navigate = useNavigate();
+  const history = useHistory(); // CHANGED: useNavigate to useHistory
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -43,7 +43,7 @@ function ShopDashboardPage() {
       try {
         await deleteProduct(productId);
         alert('Product deleted successfully!');
-        fetchShopProducts(); // Re-fetch products after deletion
+        fetchShopProducts();
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to delete product.');
         console.error("Error deleting product:", err);
@@ -81,7 +81,6 @@ function ShopDashboardPage() {
           <Link to="/shop/orders">
             <Button colorScheme="blue" size="md">Manage Orders</Button>
           </Link>
-          {/* REMOVED: Link to Payout Settings */}
         </HStack>
       </Flex>
 
@@ -90,13 +89,7 @@ function ShopDashboardPage() {
       ) : (
         <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing="6">
           {products.map((product) => (
-            <Box key={product._id}
-              borderWidth="1px"
-              borderRadius="lg"
-              overflow="hidden"
-              boxShadow="md"
-              p="4"
-            >
+            <Box key={product._id} variant="card" p="4"> {/* Using variant="card" */}
               <Image src={product.image} alt={product.name} objectFit="cover" height="200px" />
               <Box mt="4">
                 <Stack spacing="2">

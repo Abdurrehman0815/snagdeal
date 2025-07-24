@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from 'react';
-// No change to Link, useParams, useHistory not directly used here
 import { useParams, Link } from 'react-router-dom';
 import { Box, Heading, Text, Image, Button, Flex, Spinner, Alert, AlertIcon, VStack, HStack, Divider, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, Input, FormControl, FormLabel, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, useToast, List, ListItem, Select, Stat, StatLabel, StatNumber, StatGroup, Textarea } from '@chakra-ui/react';
 import { getProductById, createProductReview } from '../api/products';
@@ -266,7 +265,7 @@ function ProductDetailPage() {
             </Text>
           )}
 
-          {user && user.role === 'user' && attemptsLeft !== null && attemptsLeft < 0 && (
+          {user && user.role === 'user' && attemptsLeft !== null && attemptsLeft >= 0 && (
             <Text color="red.500" mt="2">You have exhausted your negotiation attempts for this product.</Text>
           )}
           {user && user.role !== 'user' && (

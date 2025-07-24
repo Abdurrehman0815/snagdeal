@@ -3,7 +3,7 @@ import { Box, Heading, VStack, FormControl, FormLabel, Input, Button, Alert, Ale
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom'; // CHANGED: useNavigate to useHistory
 import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
 import { createOrder, initiateRazorpayOrder, verifyRazorpayPayment } from '../api/orders';
@@ -19,7 +19,7 @@ const shippingSchema = z.object({
 function CheckoutPage() {
   const { cartItems, getTotalPrice, clearCart } = useCartStore();
   const { user } = useAuthStore();
-  const navigate = useNavigate();
+  const history = useHistory(); // CHANGED: useNavigate to useHistory
   const toast = useToast();
 
   const [orderError, setOrderError] = useState(null);
@@ -37,7 +37,7 @@ function CheckoutPage() {
   // Redirect if cart is empty or not logged in
   useEffect(() => {
     if (cartItems.length === 0) {
-      navigate('/cart');
+      history.push('/cart'); // CHANGED: navigate to history.push
       toast({
         title: 'Cart Empty',
         description: 'Your cart is empty. Please add items before checking out.',
@@ -47,7 +47,7 @@ function CheckoutPage() {
       });
     }
     if (!user) {
-        navigate('/login?redirect=checkout');
+        history.push('/login?redirect=checkout'); // CHANGED: navigate to history.push
         toast({
           title: 'Not Logged In',
           description: 'Please log in to proceed to checkout.',
@@ -56,19 +56,17 @@ function CheckoutPage() {
           isClosable: true,
         });
     }
-  }, [cartItems, navigate, user, toast]);
+  }, [cartItems, history, user, toast]);
 
-  // MODIFIED: displayRazorpay now accepts orderIdFromBackend
   const displayRazorpay = async (razorpayOrder, orderIdFromBackend) => {
     const options = {
-      key: process.env.REACT_APP_RAZORPAY_KEY_ID, // Your Test Key ID
+      key: process.env.REACT_APP_RAZORPAY_KEY_ID,
       amount: razorpayOrder.amount,
       currency: razorpayOrder.currency,
       name: "E-Commerce App",
       description: "Purchase from E-Commerce App",
-      order_id: razorpayOrder.orderId, // Razorpay Order ID from backend
+      order_id: razorpayOrder.orderId,
       handler: async function (response) {
-        // Use orderIdFromBackend directly here, ensuring it's the correct value
         try {
           await verifyRazorpayPayment(orderIdFromBackend, {
             razorpay_order_id: response.razorpay_order_id,
@@ -83,7 +81,7 @@ function CheckoutPage() {
             isClosable: true,
           });
           clearCart();
-          navigate(`/myorders`);
+          history.push(`/myorders`); // CHANGED: navigate to history.push
         } catch (err) {
           toast({
             title: "Payment Verification Failed",
@@ -94,7 +92,7 @@ function CheckoutPage() {
           });
           console.error("Payment verification error:", err);
         } finally {
-          setOrderLoading(false); // Ensure loading is stopped here too
+          setOrderLoading(false);
         }
       },
       prefill: {
@@ -144,15 +142,12 @@ function CheckoutPage() {
     };
 
     try {
-      // 1. Create our internal order first
       const createdOrder = await createOrder(orderData);
-
-      // 2. Initiate Razorpay payment (get Razorpay's order ID)
+      
       const razorpayOrder = await initiateRazorpayOrder(createdOrder._id);
 
-      // 3. Display Razorpay checkout form, passing our internal order ID explicitly
-      displayRazorpay(razorpayOrder, createdOrder._id); // MODIFIED CALL
-
+      displayRazorpay(razorpayOrder, createdOrder._id);
+      
     } catch (err) {
       setOrderError(err.response?.data?.message || 'Failed to place order or initiate payment. Please try again.');
       console.error('Order/Payment initiation error:', err);
@@ -168,7 +163,7 @@ function CheckoutPage() {
       </Flex>
     );
   }
-
+  
   if (cartItems.length === 0 || !user) {
       return (
           <Flex justify="center" align="center" minHeight="50vh">
@@ -179,7 +174,7 @@ function CheckoutPage() {
   }
 
   return (
-    <Box maxWidth="xl" mx="auto" mt="8" p="6" borderWidth="1px" borderRadius="lg" boxShadow="lg">
+    <Box maxWidth="xl" mx="auto" mt="8" p="6" variant="panel"> {/* Using variant="panel" */}
       <Heading as="h2" size="xl" textAlign="center" mb="6">Checkout</Heading>
       {orderError && (
         <Alert status="error" mb="4">

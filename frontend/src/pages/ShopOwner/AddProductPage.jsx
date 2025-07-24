@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Heading, VStack, FormControl, FormLabel, Input, Button, Textarea, Select, Alert, AlertIcon, Spinner, Flex, Text } from '@chakra-ui/react';
 import { createProduct, getProductById, updateProduct } from '../../api/products';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useHistory, useParams } from 'react-router-dom'; // CHANGED: useNavigate to useHistory
 import { useAuthStore } from '../../store/authStore';
 
 function AddProductPage() {
-  const { user } = useAuthStore(); // User is guaranteed to exist due to ProtectedRoute
-  const navigate = useNavigate();
+  const { user } = useAuthStore();
+  const history = useHistory(); // CHANGED: useNavigate to useHistory
   const { id: productId } = useParams();
 
   const [name, setName] = useState('');
@@ -24,16 +24,12 @@ function AddProductPage() {
   const [isEditMode, setIsEditMode] = useState(false);
 
   useEffect(() => {
-    // No need for initial `if (!user)` check, as ProtectedRoute handles user authentication
-    // However, ensure user is shopOwner (though ProtectedRoute does this too)
-    if (user && user.role === 'shopOwner') { // Added explicit user role check for safety in data fetching
+    if (user && user.role === 'shopOwner') {
         if (productId) {
             setIsEditMode(true);
             const fetchProduct = async () => {
               try {
                 const data = await getProductById(productId);
-                // Basic check if the product actually belongs to this shop owner (optional, backend also checks)
-                // if (data.shop !== user.shopId) { navigate('/shop/dashboard'); alert('Not authorized to edit this product.'); return; }
                 setName(data.name);
                 setDescription(data.description);
                 setImage(data.image);
@@ -55,10 +51,9 @@ function AddProductPage() {
             setPageLoading(false);
           }
     } else {
-        // If for some reason ProtectedRoute didn't catch it or user state changes oddly, redirect
-        navigate('/login');
+        history.push('/login'); // CHANGED: navigate to history.push
     }
-  }, [user, navigate, productId]); // Dependency array should include user, navigate, productId
+  }, [user, history, productId]);
 
 
   const handleSubmit = async (e) => {
@@ -101,7 +96,7 @@ function AddProductPage() {
         await createProduct(productData);
         alert('Product added successfully!');
       }
-      navigate('/shop/dashboard');
+      history.push('/shop/dashboard'); // CHANGED: navigate to history.push
     } catch (err) {
       setError(err.response?.data?.message || (isEditMode ? 'Failed to update product.' : 'Failed to add product.') + ' Please try again.');
       console.error(isEditMode ? "Update product error:" : "Add product error:", err);
@@ -120,10 +115,8 @@ function AddProductPage() {
     );
   }
 
-  // No need for `if (!user || user.role !== 'shopOwner')` block here, ProtectedRoute handles it
-
   return (
-    <Box maxWidth="xl" mx="auto" mt="8" p="6" borderWidth="1px" borderRadius="lg" boxShadow="lg">
+    <Box maxWidth="xl" mx="auto" mt="8" p="6" variant="panel"> {/* Using variant="panel" */}
       <Heading as="h2" size="xl" textAlign="center" mb="6">{isEditMode ? 'Edit Product' : 'Add New Product'}</Heading>
       {error && (
         <Alert status="error" mb="4">

@@ -1,30 +1,26 @@
 import React, { useState, useEffect } from 'react';
-// Removed Avatar, CircularProgress components from import
-import { Box, Heading, VStack, FormControl, FormLabel, Input, Button, Alert, AlertIcon, Text, Spinner, Flex, Divider, useToast } from '@chakra-ui/react';
+import { Box, Heading, VStack, FormControl, FormLabel, Input, Button, Alert, AlertIcon, Text, Spinner, Flex, Divider, useToast, Avatar } from '@chakra-ui/react';
 import { useAuthStore } from '../store/authStore';
 import { getProfile, updateUserProfile } from '../api/auth';
-// Removed uploadFile import
-import { useNavigate } from 'react-router-dom';
+import { useHistory } from 'react-router-dom'; // CHANGED: useNavigate to useHistory
 
 function UserProfilePage() {
   const { user, login: authStoreLogin } = useAuthStore();
-  const navigate = useNavigate();
+  const history = useHistory(); // CHANGED: useNavigate to useHistory
   const toast = useToast();
 
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [profilePicture, setProfilePicture] = useState(''); // Now stores URL string
+  const [profilePicture, setProfilePicture] = useState('');
 
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState(null);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [updateError, setUpdateError] = useState(null);
   const [updateSuccess, setUpdateSuccess] = useState(false);
-  // Removed imageUploadLoading state
 
-  // Fetch user profile on component mount
   useEffect(() => {
     const fetchUserProfile = async () => {
       if (!user) {
@@ -37,7 +33,7 @@ function UserProfilePage() {
         const profileData = await getProfile();
         setName(profileData.name);
         setEmail(profileData.email);
-        setProfilePicture(profileData.profilePicture || ''); // Set current profile pic URL
+        setProfilePicture(profileData.profilePicture || '');
       } catch (err) {
         setProfileError(err.response?.data?.message || 'Failed to fetch user profile.');
         console.error("Error fetching profile:", err);
@@ -49,11 +45,10 @@ function UserProfilePage() {
     if (user) {
       fetchUserProfile();
     } else {
-      navigate('/login');
+      history.push('/login'); // CHANGED: navigate to history.push
     }
-  }, [user, navigate]);
+  }, [user, history]);
 
-  // Removed useEffect for image preview and handleFileChange
 
   const handleProfileUpdate = async (e) => {
     e.preventDefault();
@@ -61,11 +56,11 @@ function UserProfilePage() {
     setUpdateSuccess(false);
     setUpdateLoading(true);
 
-    // Directly send profilePicture URL from state
     const userDataToUpdate = {};
     if (name !== user.name) userDataToUpdate.name = name;
     if (email !== user.email) userDataToUpdate.email = email;
-    if (profilePicture !== user.profilePicture) userDataToUpdate.profilePicture = profilePicture; // Send URL
+    if (profilePicture !== user.profilePicture) userDataToUpdate.profilePicture = profilePicture;
+
 
     if (Object.keys(userDataToUpdate).length === 0) {
       setUpdateError('No changes detected to update profile.');
@@ -151,13 +146,12 @@ function UserProfilePage() {
   if (!user) return null;
 
   return (
-    <Box maxWidth="xl" mx="auto" mt="8" p="6" borderWidth="1px" borderRadius="lg" boxShadow="lg">
+    <Box maxWidth="xl" mx="auto" mt="8" p="6" variant="panel"> {/* Using variant="panel" */}
       <Heading as="h2" size="xl" textAlign="center" mb="6">My Profile</Heading>
 
       {/* Profile Picture Display */}
       <Flex direction="column" align="center" mb="6">
-        {/* Use Image component or just a simple img tag for display */}
-        <img src={profilePicture || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'} alt="Profile" style={{ width: '100px', height: '100px', borderRadius: '50%', objectFit: 'cover', marginBottom: '1rem' }} />
+        <Avatar size="xl" name={user.name} src={profilePicture || 'https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_960_720.png'} mb="4" /> {/* Use Avatar here */}
         <Text fontSize="lg" fontWeight="bold">{user.name}</Text>
         <Text fontSize="md" color="gray.600">{user.email}</Text>
       </Flex>
@@ -187,7 +181,6 @@ function UserProfilePage() {
               <FormLabel>Email</FormLabel>
               <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
             </FormControl>
-            {/* Changed to a URL input */}
             <FormControl id="profile-picture-url">
               <FormLabel>Profile Picture URL</FormLabel>
               <Input type="url" value={profilePicture} onChange={(e) => setProfilePicture(e.target.value)} placeholder="e.g., https://example.com/your-pic.jpg" />

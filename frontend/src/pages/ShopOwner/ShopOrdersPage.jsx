@@ -1,27 +1,26 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Box, Heading, Text, Flex, Spinner, Alert, AlertIcon, VStack, SimpleGrid, Image, Button, Tag, TagLabel, TagLeftIcon, Link as ChakraLink, Divider } from '@chakra-ui/react';
-import { MdCheckCircle, MdLocalShipping, MdOutlinePending } from 'react-icons/md'; // Added MdOutlinePending
-import { Link as ReactRouterLink, useNavigate } from 'react-router-dom';
+import { Box, Heading, Text, Flex, Spinner, Alert, AlertIcon, VStack, SimpleGrid, Image, Button, Tag, TagLabel, TagLeftIcon, Link as ChakraLink, Divider, HStack } from '@chakra-ui/react';
+import { MdCheckCircle, MdLocalShipping, MdOutlinePending } from 'react-icons/md';
+import { Link as ReactRouterLink, useHistory } from 'react-router-dom'; // CHANGED: useNavigate to useHistory
 import { useAuthStore } from '../../store/authStore';
-import { getShopOrders, updateOrderToDelivered } from '../../api/orders'; // Import API functions
+import { getShopOrders, updateOrderToDelivered } from '../../api/orders';
 
 function ShopOrdersPage() {
   const { user } = useAuthStore();
-  const navigate = useNavigate();
+  const history = useHistory(); // CHANGED: useNavigate to useHistory
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [updateLoading, setUpdateLoading] = useState({}); // To manage loading state per order update
+  const [updateLoading, setUpdateLoading] = useState({});
 
-  // Basic protection: Redirect if not logged in or not a shop owner
   useEffect(() => {
     if (!user || user.role !== 'shopOwner') {
-      navigate('/login');
+      history.push('/login'); // CHANGED: navigate to history.push
     }
-  }, [user, navigate]);
+  }, [user, history]);
 
   const fetchShopOrders = useCallback(async () => {
-    if (!user || !user.shopId) {
+    if (!user.shopId) {
       setLoading(false);
       setError("Shop ID not available. Please log in as a shop owner with a valid shop.");
       return;
@@ -29,7 +28,7 @@ function ShopOrdersPage() {
     setLoading(true);
     setError(null);
     try {
-      const data = await getShopOrders(user.shopId); // Fetch orders for this shop
+      const data = await getShopOrders(user.shopId);
       setOrders(data);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to fetch shop orders.');
@@ -49,7 +48,7 @@ function ShopOrdersPage() {
       try {
         await updateOrderToDelivered(orderId);
         alert('Order marked as delivered successfully!');
-        fetchShopOrders(); // Re-fetch orders to update status
+        fetchShopOrders();
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to mark order as delivered.');
         console.error("Error marking order delivered:", err);
@@ -99,7 +98,7 @@ function ShopOrdersPage() {
           {orders.map((order) => {
             const deliveryTag = getDeliveryStatusTag(order.isDelivered);
             return (
-              <Box key={order._id} borderWidth="1px" borderRadius="lg" p="6" boxShadow="md">
+              <Box key={order._id} variant="panel" p="6"> {/* Using variant="panel" */}
                 <Flex justify="space-between" align="center" mb="4">
                   <Heading as="h3" size="md">Order ID: {order._id}</Heading>
                   <Tag size="md" colorScheme={deliveryTag.colorScheme}>
@@ -130,7 +129,6 @@ function ShopOrdersPage() {
                 <Heading as="h4" size="sm" mb="3">Your Products in This Order:</Heading>
                 <VStack spacing={2} align="stretch">
                     {order.orderItems.map((item) => (
-                        // REMOVED redundant client-side check 'item.shop === user.shopId &&'
                         <Flex key={item.product} align="center" gap="2" borderWidth="1px" borderRadius="md" p="2">
                             <Image src={item.image} alt={item.name} boxSize="60px" objectFit="cover" borderRadius="md" />
                             <VStack align="start" flex="1">

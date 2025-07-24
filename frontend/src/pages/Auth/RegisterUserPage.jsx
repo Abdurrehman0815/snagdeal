@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { Box, Heading, Alert, AlertIcon, VStack, FormControl, FormLabel, Input, Button, Text } from '@chakra-ui/react';
-import { Link, useHistory } from 'react-router-dom';
-// Make sure to import or define registerUser function
+import { Box, Heading, VStack, FormControl, FormLabel, Input, Button, Text, Alert, AlertIcon } from '@chakra-ui/react';
+import { registerUser } from '../../api/auth';
+import { useHistory, Link } from 'react-router-dom'; // CHANGED: useNavigate to useHistory
 
 function RegisterUserPage() {
   const [name, setName] = useState('');

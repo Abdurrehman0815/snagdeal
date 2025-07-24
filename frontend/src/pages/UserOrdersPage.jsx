@@ -1,20 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { Box, Heading, Text, Flex, Spinner, Alert, AlertIcon, VStack, SimpleGrid, Image, Link as ChakraLink, Divider, List, ListItem, HStack, Icon } from '@chakra-ui/react';
 import { MdCheckCircle, MdShoppingCart, MdLocalShipping } from 'react-icons/md';
-import { Link as ReactRouterLink, useNavigate } from 'react-router-dom'; // useNavigate is still needed for other navigation
+import { Link as ReactRouterLink, useHistory } from 'react-router-dom'; // CHANGED: useNavigate to useHistory
 import { useAuthStore } from '../store/authStore';
 import { getMyOrders } from '../api/orders';
 
 function UserOrdersPage() {
-  const { user } = useAuthStore(); // User is guaranteed to exist due to ProtectedRoute
-  const navigate = useNavigate(); // Still needed for non-auth navigation
+  const { user } = useAuthStore();
+  const history = useHistory(); // CHANGED: useNavigate to useHistory
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchOrders = async () => {
-      // No need for initial `if (!user)` check, as ProtectedRoute handles it
       setLoading(true);
       setError(null);
       try {
@@ -28,13 +27,10 @@ function UserOrdersPage() {
       }
     };
 
-    // Fetch only if user object is valid (which ProtectedRoute ensures)
     if (user && user.role === 'user') {
       fetchOrders();
     }
-  }, [user]); // Re-fetch orders if user changes
-
-  // No need for `if (!user || user.role !== 'user')` block here, ProtectedRoute handles it
+  }, [user]);
 
   if (loading) {
     return (
@@ -62,7 +58,7 @@ function UserOrdersPage() {
       ) : (
         <VStack spacing="8" align="stretch">
           {orders.map((order) => (
-            <Box key={order._id} borderWidth="1px" borderRadius="lg" p="6" boxShadow="md">
+            <Box key={order._id} variant="panel" p="6"> {/* Using variant="panel" */}
               <Flex justify="space-between" align="center" mb="4">
                 <Heading as="h3" size="md">Order ID: {order._id}</Heading>
                 <Text fontSize="sm" color="gray.600">Ordered on: {new Date(order.createdAt).toLocaleDateString()}</Text>
