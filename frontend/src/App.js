@@ -1,5 +1,6 @@
 import React from 'react';
-import { Routes, Route, Link, useNavigate } from 'react-router-dom';
+// CORRECTED IMPORTS FOR REACT ROUTER V5: Switch, useHistory
+import { BrowserRouter as Router, Switch, Route, Link, useHistory } from 'react-router-dom';
 import { Box, Flex, Text, Button, Spacer, HStack, IconButton, Icon, Avatar } from '@chakra-ui/react';
 import { MdShoppingCart, MdListAlt, MdPerson } from 'react-icons/md';
 import { useAuthStore } from './store/authStore';
@@ -19,24 +20,24 @@ import UserOrdersPage from './pages/UserOrdersPage';
 import ShopOrdersPage from './pages/ShopOwner/ShopOrdersPage';
 import UserProfilePage from './pages/UserProfilePage';
 
+// ProtectedRoute needs to be compatible with v5
 import ProtectedRoute from './components/ProtectedRoute';
 
 
 const NotFoundPage = () => <div>404 Not Found</div>;
 
 function App() {
-    const navigate = useNavigate();
+    const history = useHistory(); // CHANGED: useNavigate to useHistory
     const { user, logout } = useAuthStore();
     const totalCartItems = useCartStore((state) => state.getTotalItems());
 
     const handleLogout = () => {
         logout();
-        navigate('/login');
+        history.push('/login'); // CHANGED: navigate to history.push
     };
 
     return (
         <>
-            {/* Navbar: Changed background to gray.900 (dark/black) and default text color to white */}
             <Flex as="nav" bg="gray.900" p="4" color="white" align="center">
                 <Link to="/">
                     <Text fontSize="xl" fontWeight="bold" color="white">E-Commerce App</Text>
@@ -45,7 +46,6 @@ function App() {
                 <Box>
                     {user ? (
                         <HStack spacing="4">
-                            {/* Profile Avatar/Link */}
                             <Link to="/profile">
                                 <Avatar size="sm" name={user.name} src={user.profilePicture} />
                             </Link>
@@ -120,34 +120,30 @@ function App() {
             </Flex>
 
             <Box p="4">
-                <Routes>
-                    {/* Public Routes */}
-                    <Route path="/" element={<HomePage />} />
-                    <Route path="/product/:id" element={<ProductDetailPage />} />
-                    <Route path="/login" element={<LoginPage />} />
-                    <Route path="/register/user" element={<RegisterUserPage />} />
-                    <Route path="/register/shop-owner" element={<RegisterShopOwnerPage />} />
-                    <Route path="*" element={<NotFoundPage />} />
+                <Switch> {/* CHANGED: Routes to Switch */}
+                    {/* Public Routes - use 'component' prop instead of 'element' */}
+                    <Route path="/" component={HomePage} exact /> {/* 'exact' is good for '/' */}
+                    <Route path="/product/:id" component={ProductDetailPage} />
+                    <Route path="/login" component={LoginPage} />
+                    <Route path="/register/user" component={RegisterUserPage} />
+                    <Route path="/register/shop-owner" component={RegisterShopOwnerPage} />
+                    {/* Protected Routes - use render prop with ProtectedRoute */}
+                    {/* Note: Order matters in Switch - specific paths before general */}
 
-                    {/* PROTECTED ROUTES */}
-                    <Route element={<ProtectedRoute />}>
-                        <Route path="/profile" element={<UserProfilePage />} />
-                        <Route path="/cart" element={<CartPage />} />
-                        <Route path="/checkout" element={<CheckoutPage />} />
-                    </Route>
+                    <Route path="/profile" render={(props) => (<ProtectedRoute {...props} component={UserProfilePage} />)} />
+                    <Route path="/cart" render={(props) => (<ProtectedRoute {...props} component={CartPage} />)} />
+                    <Route path="/checkout" render={(props) => (<ProtectedRoute {...props} component={CheckoutPage} />)} />
 
-                    <Route element={<ProtectedRoute role="user" />}>
-                        <Route path="/myorders" element={<UserOrdersPage />} />
-                    </Route>
+                    <Route path="/myorders" render={(props) => (<ProtectedRoute {...props} role="user" component={UserOrdersPage} />)} />
 
-                    <Route element={<ProtectedRoute role="shopOwner" />}>
-                        <Route path="/shop/dashboard" element={<ShopDashboardPage />} />
-                        <Route path="/shop/add-product" element={<AddProductPage />} />
-                        <Route path="/shop/edit-product/:id" element={<AddProductPage />} />
-                        <Route path="/shop/orders" element={<ShopOrdersPage />} />
-                    </Route>
+                    <Route path="/shop/dashboard" render={(props) => (<ProtectedRoute {...props} role="shopOwner" component={ShopDashboardPage} />)} />
+                    <Route path="/shop/add-product" render={(props) => (<ProtectedRoute {...props} role="shopOwner" component={AddProductPage} />)} />
+                    <Route path="/shop/edit-product/:id" render={(props) => (<ProtectedRoute {...props} role="shopOwner" component={AddProductPage} />)} />
+                    <Route path="/shop/orders" render={(props) => (<ProtectedRoute {...props} role="shopOwner" component={ShopOrdersPage} />)} />
 
-                </Routes>
+                    {/* Fallback for unmatched routes - this must be the last Route */}
+                    <Route path="*" component={NotFoundPage} />
+                </Switch>
             </Box>
         </>
     );

@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
+// No change to Link, useParams, useHistory not directly used here
 import { useParams, Link } from 'react-router-dom';
-// Added components for reviews: Heading, List, ListItem, Textarea, Select, useToast
 import { Box, Heading, Text, Image, Button, Flex, Spinner, Alert, AlertIcon, VStack, HStack, Divider, useDisclosure, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, Input, FormControl, FormLabel, NumberInput, NumberInputField, NumberInputStepper, NumberIncrementStepper, NumberDecrementStepper, useToast, List, ListItem, Select, Stat, StatLabel, StatNumber, StatGroup, Textarea } from '@chakra-ui/react';
-import { getProductById, createProductReview } from '../api/products'; // Import createProductReview
+import { getProductById, createProductReview } from '../api/products';
 import { requestNegotiation } from '../api/negotiations';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
@@ -22,14 +22,12 @@ function ProductDetailPage() {
   const [isSubmittingNegotiation, setIsSubmittingNegotiation] = useState(false);
   const [qty, setQty] = useState(1);
 
-  // State for review submission
   const [rating, setRating] = useState('');
   const [comment, setComment] = useState('');
   const [reviewLoading, setReviewLoading] = useState(false);
   const [reviewError, setReviewError] = useState(null);
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
-  // State for negotiation modal
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [proposedPrice, setProposedPrice] = useState('');
   const [negotiationMessage, setNegotiationMessage] = useState('');
@@ -39,25 +37,16 @@ function ProductDetailPage() {
 
   const productInCart = cartItems.find(item => item.product === id);
 
-  // Check if logged-in user has already reviewed this product
   const hasUserReviewed = product?.reviews?.find(
     (r) => r.user.toString() === user?._id?.toString()
   );
 
-  // Function to fetch product and optionally refetch reviews
   const fetchProductAndReviews = async () => {
     setLoading(true);
     setError(null);
     try {
       const data = await getProductById(id);
       setProduct(data);
-      // Set initial attemptsLeft if user is logged in and product exists
-      if (user && data) {
-        // Find existing negotiation from user, if any, to get attemptsLeft
-        // This would require a backend endpoint to get user's specific negotiation
-        // For now, it will be updated only after submitting a new negotiation.
-        // If you implement getUserNegotiationsForProduct, you'd call it here.
-      }
     } catch (err) {
       setError(err.message || 'Failed to fetch product details.');
       console.error("Error fetching product details:", err);
@@ -68,7 +57,7 @@ function ProductDetailPage() {
 
   useEffect(() => {
     fetchProductAndReviews();
-  }, [id, user]); // Re-fetch if product ID or user changes
+  }, [id, user]);
 
   useEffect(() => {
     if (socket && user) {
@@ -175,7 +164,7 @@ function ProductDetailPage() {
         duration: 5000,
         isClosable: true,
       });
-      fetchProductAndReviews(); // Re-fetch product to update reviews list and average rating
+      fetchProductAndReviews();
     } catch (err) {
       setReviewError(err.response?.data?.message || 'Failed to submit review.');
       console.error("Review submission error:", err);
@@ -301,11 +290,11 @@ function ProductDetailPage() {
             <StatGroup>
                 <Stat>
                     <StatLabel>Average Rating</StatLabel>
-                    <StatNumber>{product.rating?.toFixed(1) || 'N/A'}</StatNumber> {/* Display average rating */}
+                    <StatNumber>{product.rating?.toFixed(1) || 'N/A'}</StatNumber>
                 </Stat>
                 <Stat>
                     <StatLabel>Total Reviews</StatLabel>
-                    <StatNumber>{product.numReviews}</StatNumber> {/* Display total reviews */}
+                    <StatNumber>{product.numReviews}</StatNumber>
                 </Stat>
             </StatGroup>
         </Flex>
@@ -345,7 +334,7 @@ function ProductDetailPage() {
             Review submitted successfully!
           </Alert>
         )}
-        {user && user.role === 'user' ? ( // Only show form if user is logged in
+        {user && user.role === 'user' ? (
           hasUserReviewed ? (
             <Alert status="info" mb="4">
               <AlertIcon />
