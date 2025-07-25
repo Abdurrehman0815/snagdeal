@@ -1,5 +1,5 @@
-import create from 'zustand'; // CORRECTED
-import { persist, createJSONStorage } from 'zustand/middleware';
+import create from 'zustand';
+import { persist } from 'zustand/middleware'; // CORRECTED
 
 // Helper to get initial cart data from localStorage if it exists
 const getInitialCartData = () => {
@@ -66,7 +66,7 @@ export const useCartStore = create(
     }),
     {
       name: 'cart',
-      storage: createJSONStorage(() => localStorage),
+      storage: localStorage, // CORRECTED: Directly use localStorage
     }
   )
 );

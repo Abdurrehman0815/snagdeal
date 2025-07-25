@@ -1,5 +1,5 @@
-import create from 'zustand'; // CORRECTED
-import { persist, createJSONStorage } from 'zustand/middleware';
+import create from 'zustand';
+import { persist } from 'zustand/middleware'; // CORRECTED
 
 // Helper to get initial user data from localStorage if it exists
 const getInitialAuthData = () => {
@@ -27,7 +27,7 @@ export const useAuthStore = create(
     }),
     {
       name: 'auth',
-      storage: createJSONStorage(() => localStorage),
+      storage: localStorage, // CORRECTED: Directly use localStorage
     }
   )
 );
